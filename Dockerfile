@@ -12,12 +12,6 @@ RUN pip install --upgrade pip && python -m pip install --upgrade setuptools
 
 RUN pip install pycocotools
 
-RUN wget https://codeload.github.com/openpifpaf/openpifpaf/tar.gz/refs/tags/v0.13.11
-
-RUN tar -xzf v0.13.11.tar.gz && \
-    cd openpifpaf-0.13.11 && \
-    pip install .
-
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
 
 RUN git clone https://github.com/VlSomers/prtreid && \
