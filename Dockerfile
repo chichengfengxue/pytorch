@@ -10,7 +10,7 @@ RUN conda install -y faiss-gpu scikit-learn pandas flake8 yapf isort yacs gdown 
 
 RUN pip install --upgrade pip && python -m pip install --upgrade setuptools
 
-RUN pip install openpifpaf>=0.13.11
+RUN pip install --upgrade openpifpaf
 
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
 
