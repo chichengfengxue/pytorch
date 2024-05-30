@@ -19,9 +19,8 @@ RUN wget https://codeload.github.com/openpifpaf/openpifpaf/tar.gz/refs/tags/v0.1
 
 WORKDIR /app/openpifpaf-0.13.11
 
-RUN pip install -r requirements.txt
-
 RUN pip install .
+
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
 
 RUN git clone https://github.com/VlSomers/prtreid && \
