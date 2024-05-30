@@ -10,6 +10,8 @@ RUN conda install -y faiss-gpu scikit-learn pandas flake8 yapf isort yacs gdown 
 
 RUN pip install --upgrade pip && python -m pip install --upgrade setuptools
 
+RUN pip install pycocotools
+
 RUN pip install --upgrade pip setuptools wheel
 
 RUN pip install --upgrade openpifpaf==0.10.1
