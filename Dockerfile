@@ -53,9 +53,10 @@ RUN pip install opencv-python tb-nightly matplotlib logger_tt tabulate tqdm whee
 RUN pip install \
     mmengine==0.10.1 \
     timm==0.9.12 \
-    openpifpaf==0.13.11 \
     mmpose==1.2.0 \
     gdown==4.7.1 \
     pandas==2.1.0
 
 RUN pip install 'yt-dlp>2023.12.30'
+
+RUN pip install --no-cache-dir --force-reinstall openpifpaf==0.13.11
