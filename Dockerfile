@@ -10,6 +10,8 @@ RUN conda install -y faiss-gpu scikit-learn pandas flake8 yapf isort yacs gdown 
 
 RUN pip install --upgrade pip && python -m pip install --upgrade setuptools
 
+RUN pip install openpifpaf>=0.13.11
+
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
 
 RUN git clone https://github.com/VlSomers/prtreid && \
@@ -58,5 +60,3 @@ RUN pip install \
     pandas==2.1.0
 
 RUN pip install 'yt-dlp>2023.12.30'
-
-RUN pip install --no-cache-dir --force-reinstall openpifpaf==0.13.11
