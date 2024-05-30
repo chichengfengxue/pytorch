@@ -12,11 +12,11 @@ RUN pip install --upgrade pip && python -m pip install --upgrade setuptools
 
 RUN pip install pycocotools
 
-RUN pip install --upgrade pip setuptools wheel
+RUN wget https://github.com/openpifpaf/openpifpaf/archive/refs/tags/v0.13.11.tar.gz
 
-RUN pip install --upgrade openpifpaf==0.10.1
-
-RUN pip install --upgrade openpifpaf
+RUN tar -xzf v0.13.11.tar.gz && \
+    cd openpifpaf-0.13.11 && \
+    pip install .
 
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
 
