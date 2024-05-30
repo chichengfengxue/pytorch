@@ -8,18 +8,9 @@ RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano ps
 
 RUN conda install -y faiss-gpu scikit-learn pandas flake8 yapf isort yacs gdown future libgcc h5py=3.4.0 -c conda-forge
 
-RUN pip install --upgrade pip && python -m pip install --upgrade setuptools
+RUN pip install --upgrade pip && python -m pip install --upgrade setuptools==69.5.1
 
-RUN pip install pycocotools
-
-WORKDIR /app
-
-RUN wget https://codeload.github.com/openpifpaf/openpifpaf/tar.gz/refs/tags/v0.13.11 -O v0.13.11.tar.gz && \
-    tar -xzf v0.13.11.tar.gz
-
-WORKDIR /app/openpifpaf-0.13.11
-
-RUN pip install .
+RUN pip install pycocotools openpifpaf
 
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
 
