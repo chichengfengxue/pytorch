@@ -17,10 +17,10 @@ WORKDIR /workspace
 
 COPY ./sn-gamestate /workspace/sn-gamestate
 
-RUN pip install -e /workspace/sn-gamestate"
+RUN pip install -e /workspace/sn-gamestate
 
 COPY ./tracklab /workspace/tracklab
 
-RUN pip install -e /workspace/tracklab"
+RUN pip install -e /workspace/tracklab
 
 RUN rm -rf /workspace/sn-gamestate /workspace/tracklab
