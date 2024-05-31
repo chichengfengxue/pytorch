@@ -48,3 +48,5 @@ RUN pip install \
     pandas==2.1.0
 
 RUN pip install yt-dlp>=2023.12.30 tabulate Pillow pytest
+
+RUN mim install mmcv==2.0.1
