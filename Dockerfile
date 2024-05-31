@@ -16,31 +16,17 @@ RUN pip install openpifpaf --no-build-isolation
 
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
 
-RUN git clone https://github.com/VlSomers/prtreid && \
-    cd prtreid && \
-    pip install .
-    
-RUN git clone -b pbtrack https://github.com/TrackingLaboratory/poseval && \
-    cd poseval && \
-    pip install .
+RUN pip install git+https://github.com/VlSomers/prtreid
 
-RUN git clone https://github.com/TrackingLaboratory/lap && \
-    cd lap && \
-    pip install .
-    
-RUN git clone https://github.com/VlSomers/bpbreid && \
-    cd bpbreid && \
-    pip install .
-    
-RUN git clone https://github.com/SoccerNet/sn-trackeval.git && \
-    cd sn-trackeval && \
-    pip install .
-    
-RUN rm -rf prtreid poseval lap bpbreid sn-trackeval
+RUN pip install git+https://github.com/TrackingLaboratory/poseval@pbtrack
 
+RUN pip install git+https://github.com/TrackingLaboratory/lap
+    
+RUN pip install git+https://github.com/VlSomers/bpbreid
+    
 RUN pip install \
     hydra-core==1.3 \
-    lightning==2.0 \
+    lightning>=2.0 \
     pytorch_lightning==2.0 \
     numpy==1.23.5 \
     openmim==0.3.9 \
@@ -61,4 +47,4 @@ RUN pip install \
     gdown==4.7.1 \
     pandas==2.1.0
 
-RUN pip install 'yt-dlp>2023.12.30'
+RUN pip install yt-dlp>=2023.12.30 tabulate Pillow pytest
