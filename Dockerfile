@@ -10,7 +10,7 @@ RUN conda install -y faiss-gpu scikit-learn pandas flake8 yapf isort yacs gdown 
 
 RUN pip install --upgrade pip && python -m pip install --upgrade setuptools==69.5.1
 
-RUN pip install pycocotools 
+RUN pip install pycocotools matplotlib==3.8.4
 
 RUN pip install openpifpaf --no-build-isolation
 
@@ -38,7 +38,7 @@ RUN pip install \
     mmdet~=3.1.0 \
     chumpy==0.66
 
-RUN pip install opencv-python tb-nightly matplotlib logger_tt tabulate tqdm wheel mccabe scipy easyocr==1.7.1 soccernet==0.1.55 mmocr==1.0.1
+RUN pip install opencv-python tb-nightly logger_tt tabulate tqdm wheel mccabe scipy easyocr==1.7.1 soccernet==0.1.55 mmocr==1.0.1
 
 RUN pip install \
     mmengine==0.10.1 \
