@@ -28,7 +28,7 @@ RUN pip install \
     hydra-core==1.3 \
     lightning>=2.0 \
     pytorch_lightning==2.0 \
-    numpy==1.23.5 \
+    numpy==1.26.4 \
     openmim==0.3.9 \
     ultralytics==8.0.61 \
     sphinx==7.2 \
@@ -50,3 +50,5 @@ RUN pip install \
 RUN pip install yt-dlp>=2023.12.30 tabulate Pillow pytest
 
 RUN mim install mmcv==2.0.1
+
+RUN pip install kornia==0.6.3 sparse==0.15.4 numba==0.59.1 openxlab==0.0.11 llvmlite==0.42.0
