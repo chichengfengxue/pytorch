@@ -15,9 +15,33 @@ RUN pip install pycocotools matplotlib numpy
 COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
     
 RUN pip install \
-    xformers==0.0.22.post7 \
-    opencv-python==4.8.1.78
-    
-RUN pip install antialiased_cnns einops imageio[ffmpeg] kornia mediapy pandas pillow tqdm PyYAML
-
-
+    ffmpeg-python \
+    Flask \
+    Flask_Cors \
+    gradio>=3.7.0 \
+    numpy==1.23.5 \
+    pyworld \
+    scipy==1.10.0 \
+    SoundFile==0.12.1 \
+    torchaudio \
+    torchcrepe \
+    tqdm \
+    rich \
+    loguru \
+    scikit-maad \
+    praat-parselmouth \
+    onnx \
+    onnxsim \
+    onnxoptimizer \
+    fairseq==0.12.2 \
+    librosa==0.9.1 \
+    tensorboard \
+    tensorboardX \
+    transformers \
+    edge_tts \
+    langdetect \
+    pyyaml \
+    pynvml \
+    faiss-cpu \
+    einops \
+    local_attention \
