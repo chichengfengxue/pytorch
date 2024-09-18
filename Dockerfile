@@ -22,4 +22,4 @@ RUN pip install antialiased_cnns einops imageio[ffmpeg] kornia mediapy pandas pi
 
 RUN pip install snakeviz six blessed torchinfo
 
-RUN python -m pip install detectron2==0.6 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.8/index.html
+RUN pip install git+https://github.com/facebookresearch/detectron2
