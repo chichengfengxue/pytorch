@@ -11,7 +11,6 @@ RUN pip install -U openmim
 RUN mim install mmcv-full==1.6.0
 RUN pip install mmsegmentation==0.24.1
 
-RUN pip install termcolor==2.5.0 
 RUN pip install yacs==0.1.8 
 RUN pip install tabulate==0.9.0 
 RUN pip install cloudpickle==3.1.0 
