@@ -11,7 +11,7 @@ RUN mim install mmcv-full==1.6.0
 RUN pip install mmsegmentation==0.24.1
 RUN pip install shapely==2.0.6
 RUN pip install pycocotools>=2.0.2 termcolor>=1.1 yacs>=0.1.8 cloudpickle tensorboard fvcore  iopath omegaconf 
-RUN pip install hydra_core black antlr4-python3-runtime-4.9.3 portalocker mypy_extensions pathspec tensorboard_data_server
+RUN pip install hydra_core black antlr4-python3-runtime portalocker mypy_extensions pathspec tensorboard_data_server
 RUN pip install google_auth_oauthlib grpcio absl_py google_auth protobuf werkzeug>=1.0.1 rsa pyasn1-modules>=0.2.1 
 RUN pip install cachetools  requests-oauthlib>=0.7.0 pyasn1 oauthlib>=3.0.0 MarkupSafe>=2.1.1 MarkupSafe appdirs pyquaternion coloredlogs 
 RUN pip install typing humanfriendly>=9.1 cython scipy timm h5py submitit scikit-image huggingface_hub safetensors tifffile>=2022.8.12 imageio>=2.27 networkx>=2.8 
