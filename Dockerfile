@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.6.0-cuda12.6-cudnn9-devel
+FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-devel
 
 RUN apt-key del 7fa2af80 && \
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub && \
@@ -7,9 +7,9 @@ RUN apt-key del 7fa2af80 && \
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git && apt-get --fix-broken install -y
 
 RUN pip install -U openmim
-RUN mim install mmcv-full==1.6.0
-RUN pip install mmsegmentation==0.24.1
-RUN pip install shapely==2.0.6
+RUN pip install mmcv==2.2.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.4/index.html
+RUN pip install mmsegmentation
+RUN pip install shapely>=2.0.6
 RUN pip install pycocotools>=2.0.2 termcolor>=1.1 yacs>=0.1.8 cloudpickle tensorboard fvcore  iopath omegaconf 
 RUN pip install hydra_core black antlr4-python3-runtime portalocker mypy_extensions pathspec tensorboard_data_server
 RUN pip install google_auth_oauthlib grpcio absl_py google_auth protobuf werkzeug>=1.0.1 rsa pyasn1-modules>=0.2.1 
