@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-devel
+FROM pytorch/pytorch:1.10.0-cuda11.3-cudnn8-devel
 
 RUN apt-key del 7fa2af80 && \
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub && \
@@ -6,13 +6,12 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git && apt-get --fix-broken install -y
 
+RUN pip install setuptools==75.1.0
+RUN pip install jaxtyping==0.2.11
+RUN pip install yapf==0.40.1
 RUN pip install -U openmim
-RUN pip install mmcv==2.2.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.4/index.html
-RUN pip install mmsegmentation
-RUN pip install shapely>=2.0.6
-RUN pip install pycocotools>=2.0.2 termcolor>=1.1 yacs>=0.1.8 cloudpickle tensorboard fvcore  iopath omegaconf 
-RUN pip install hydra_core black antlr4-python3-runtime portalocker mypy_extensions pathspec tensorboard_data_server
-RUN pip install google_auth_oauthlib grpcio absl_py google_auth protobuf werkzeug>=1.0.1 rsa pyasn1-modules>=0.2.1 
-RUN pip install cachetools  requests-oauthlib>=0.7.0 pyasn1 oauthlib>=3.0.0 MarkupSafe>=2.1.1 MarkupSafe appdirs pyquaternion coloredlogs 
-RUN pip install typing humanfriendly>=9.1 cython scipy timm h5py submitit scikit-image huggingface_hub safetensors tifffile>=2022.8.12 imageio>=2.27 networkx>=2.8 
-RUN pip install PyWavelets>=1.1.1 lazy_loader>=0.2 fsspec>=2023.5.0
+RUN pip install mmcv==1.3 -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.0/index.html
+RUN pip install mmsegmentation==0.13
+RUN pip install tqdm==4.66.5 typing_extensions==4.12.2 transformers==4.46.3
+
+
