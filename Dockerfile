@@ -10,8 +10,6 @@ RUN pip install jaxtyping==0.2.11
 RUN pip install yapf==0.40.1
 RUN pip install -U openmim
 RUN pip install mmcv==1.2.7 -f https://download.openmmlab.com/mmcv/dist/cu110/torch1.7.0/index.html
-RUN pip install tqdm
-RUN pip install timm
 
 
 
