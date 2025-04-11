@@ -11,6 +11,6 @@ RUN pip install yapf==0.40.1
 RUN pip install -U openmim
 RUN pip install mmcv==1.3 -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.0/index.html
 RUN pip install mmsegmentation==0.13
-RUN pip install tqdm==4.66.5 typing_extensions==4.12.2 transformers==4.46.3
+RUN pip install tqdm
 
 
