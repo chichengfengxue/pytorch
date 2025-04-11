@@ -6,7 +6,6 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git && apt-get --fix-broken install -y
 
-RUN pip install setuptools==75.1.0
 RUN pip install jaxtyping==0.2.11
 RUN pip install yapf==0.40.1
 RUN pip install -U openmim
