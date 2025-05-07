@@ -6,6 +6,3 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git && apt-get --fix-broken install -y
 
-RUN pip install -U openmim
-RUN pip install mmcv-full==1.7.2 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.1.0/index.html
-RUN pip install natten==0.17.3+torch210cu121 -f https://shi-labs.com/natten/wheels/
