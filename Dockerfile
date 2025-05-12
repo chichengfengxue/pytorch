@@ -9,6 +9,4 @@ RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano ps
 RUN export CUDAHOME="/usr/local/cuda"
 RUN export MKL_INTERFACE_LAYER=LP64
 RUN conda create -y --name bevnet python=3.8 pip
-RUN eval "$(conda shell.bash hook)"
-RUN conda activate bevnet
-RUN pip install colorama
+RUN /bin/bash -c "source activate bevnet && pip install colorama"
