@@ -6,6 +6,9 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git && apt-get --fix-broken install -y
 
-RUN pip install -U openmim
-RUN pip install mmcv-full==1.7.2
-RUN pip install natten==0.17.3+torch210cu121 -f https://shi-labs.com/natten/wheels/
+RUN export CUDAHOME="/usr/local/cuda"
+RUN export MKL_INTERFACE_LAYER=LP64
+RUN conda create -y --name bevnet python=3.8 pip
+RUN eval "$(conda shell.bash hook)"
+RUN conda activate bevnet
+RUN pip install colorama
