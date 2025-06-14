@@ -16,4 +16,4 @@ RUN pip install google_auth_oauthlib grpcio absl_py google_auth protobuf werkzeu
 RUN pip install cachetools  requests-oauthlib>=0.7.0 pyasn1 oauthlib>=3.0.0 MarkupSafe>=2.1.1 MarkupSafe appdirs pyquaternion coloredlogs 
 RUN pip install typing humanfriendly>=9.1 cython scipy timm h5py submitit scikit-image huggingface_hub safetensors tifffile>=2022.8.12 imageio>=2.27 networkx>=2.8 
 RUN pip install PyWavelets>=1.1.1 lazy_loader>=0.2 fsspec>=2023.5.0
-RUN pip install jaxtyping==0.2.11 numpy==1.24.4
+RUN pip install jaxtyping==0.2.11 numpy==1.24.4 jinja2==2.11.3 transformers==4.40.2
