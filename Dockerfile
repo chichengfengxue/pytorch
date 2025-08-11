@@ -6,7 +6,7 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git ffmpeg && apt-get --fix-broken install -y
 RUN pip install xformers==0.0.16
-RUN pip install faiss-gpu==1.7.3
+RUN pip install faiss-gpu
 RUN pip install ipykernel jupyter 
 RUN pip install --no-cache-dir \
     absl-py \
