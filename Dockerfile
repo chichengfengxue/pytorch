@@ -6,7 +6,7 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git && apt-get --fix-broken install -y
 
-RUN conda install pytorch-cuda=11.6 xformers faiss-gpu ipykernel jupyter ffmpeg
+RUN pip install pytorch-cuda=11.6 xformers faiss-gpu ipykernel jupyter ffmpeg
 RUN pip install --no-cache-dir \
     absl-py \
     accelerate \
