@@ -5,8 +5,10 @@ RUN apt-key del 7fa2af80 && \
     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git && apt-get --fix-broken install -y
-
-RUN pip install pytorch-cuda=11.6 xformers faiss-gpu ipykernel jupyter ffmpeg
+RUN apt-get install ffmpeg
+RUN pip install xformers==0.0.16
+RUN pip install faiss-gpu==1.7.3
+RUN pip install ipykernel jupyter 
 RUN pip install --no-cache-dir \
     absl-py \
     accelerate \
