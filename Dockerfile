@@ -10,7 +10,7 @@ RUN pip install faiss-gpu
 RUN pip install ipykernel jupyter 
 RUN pip install --no-cache-dir \
     absl-py \
-    accelerate \
+    accelerate==0.18.0 \
     addict \
     aiohttp \
     aliyun-python-sdk-core \
@@ -46,7 +46,7 @@ RUN pip install --no-cache-dir \
     model-index \
     networkx \
     omegaconf \
-    open-clip-torch \
+    open-clip-torch==2.20.0 \
     opendatalab \
     openmim \
     openxlab \
@@ -73,7 +73,7 @@ RUN pip install --no-cache-dir \
     timm \
     tokenizers \
     torch-tb-profiler \
-    torchmetrics \
+    torchmetrics==0.11.4 \
     tqdm \
     transformers \
     triton \
