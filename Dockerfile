@@ -6,7 +6,7 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git ffmpeg && apt-get --fix-broken install -y
 RUN pip install uv
-RUN uv pip install einops==0.8.0 
+RUN uv pip install einops 
 RUN uv pip install matplotlib==3.7.0 
 RUN uv pip install numpy==1.24.4 
 RUN uv pip install timm==1.0.11 
