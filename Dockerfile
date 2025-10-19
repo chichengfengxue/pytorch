@@ -6,6 +6,18 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git ffmpeg && apt-get --fix-broken install -y
 RUN pip install uv
-RUN uv pip install einops==0.8.0 matplotlib==3.7.0 numpy==1.24.4 timm==1.0.11 plotly tensorboard hydra-core ipykernel rich pytest scikit-learn torchmetrics==1.6.2 transformers
+RUN uv pip install einops==0.8.0 
+RUN uv pip install matplotlib==3.7.0 
+RUN uv pip install numpy==1.24.4 
+RUN uv pip install timm==1.0.11 
+RUN uv pip install plotly 
+RUN uv pip install tensorboard 
+RUN uv pip install hydra-core 
+RUN uv pip install ipykernel 
+RUN uv pip install rich 
+RUN uv pip install pytest 
+RUN uv pip install scikit-learn 
+RUN uv pip install torchmetrics==1.6.2 
+RUN uv pip install transformers
 
 RUN pip list
