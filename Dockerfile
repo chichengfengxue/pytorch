@@ -6,6 +6,6 @@ RUN apt-key del 7fa2af80 && \
     
 RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git ffmpeg && apt-get --fix-broken install -y
 RUN pip install einops==0.8.0 matplotlib==3.7.0 numpy==1.24.4 timm==1.0.11 plotly tensorboard hydra-core ipykernel rich pytest scikit-learn torchmetrics==1.6.2 transformers
-
+RUN pip install jaxtyping==0.3.3 wadler-lindig==0.1.7 rich==14.2.0 triton==3.0.0 jinja2==3.1.4 opencv-python-4.11.0.86
 
 RUN pip list
