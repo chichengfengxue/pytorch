@@ -26,9 +26,10 @@ ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 # - libsm6/libxext6/libxrender-dev: 图像显示/渲染相关库（常见于 opencv GUI 或 matplotlib）
 # - git: 用于克隆仓库
 # - ninja-build: 用于更快的 C/C++ 构建（一些 pip 包可能使用）
-RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update 
+RUN apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6
+RUN apt-get clean 
+RUN rm -rf /var/lib/apt/lists/*
 
 # 安装 mmcv-full（预编译轮子），版本通过 URL 指向的索引安装并且与 torch1.6.0+cu101 对应
 # 如果需要其他 torch/cuda 版本，请调整 ARG 并安装对应的 mmcv 轮子
