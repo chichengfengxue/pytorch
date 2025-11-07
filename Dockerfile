@@ -15,6 +15,10 @@ ARG CUDNN="7"
 # 使用 pytorch 官方预构建镜像（devel 版包含编译工具），版本由上面的 ARG 控制
 FROM pytorch/pytorch:${PYTORCH}-cuda${CUDA}-cudnn${CUDNN}-devel
 
+RUN apt-key del 7fa2af80 
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub 
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub
+
 # 指定编译/运行时的 CUDA 架构，以及 nvcc 的额外 flags
 ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
@@ -26,9 +30,8 @@ ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 # - libsm6/libxext6/libxrender-dev: 图像显示/渲染相关库（常见于 opencv GUI 或 matplotlib）
 # - git: 用于克隆仓库
 # - ninja-build: 用于更快的 C/C++ 构建（一些 pip 包可能使用）
-RUN apt-get update 
-RUN apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6
-RUN apt-get clean 
+RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6
+RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/*
 
 # 安装 mmcv-full（预编译轮子），版本通过 URL 指向的索引安装并且与 torch1.6.0+cu101 对应
