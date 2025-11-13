@@ -4,7 +4,7 @@ RUN pip install scikit-image
 RUN pip install matplotlib
 RUN pip install filterpy
 RUN pip install scipy
-RUN pip install tqdm
+RUN pip install tqdm 
 RUN pip install tomli==1.2.3
 RUN pip install h5py
 RUN pip install pillow
