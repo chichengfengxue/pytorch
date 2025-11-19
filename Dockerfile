@@ -4,7 +4,7 @@ RUN pip install scikit-image
 RUN pip install matplotlib
 RUN pip install filterpy
 RUN pip install scipy
-RUN pip install tqdm 
+RUN pip install tqdm
 RUN pip install tomli==1.2.3
 RUN pip install h5py
 RUN pip install pillow
@@ -27,3 +27,6 @@ RUN pip install torch_tb_profiler
 RUN pip install snakeviz
 RUN pip install six
 RUN pip install blessed
+RUN pip uninstall opencv-python -y
+RUN pip install opencv-python-headless
+RUN pip install einops timm
