@@ -1,52 +1,71 @@
-FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
-RUN apt-key del 7fa2af80 && \
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub && \
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub
-    
-RUN apt-get update && apt-get install -y libgl1-mesa-glx libpci-dev curl nano psmisc zip git wget && apt-get --fix-broken install -y
+# Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+RUN pip install --no-cache nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
 
-RUN conda install -y faiss-gpu scikit-learn pandas flake8 yapf isort yacs gdown future libgcc h5py=3.4.0 -c conda-forge
+# Downloads to user config dir
+ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
-RUN pip install --upgrade pip && python -m pip install --upgrade setuptools==69.5.1
+# Install linux packages
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+RUN apt update \
+    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+# RUN alias python=python3
 
-RUN pip install pycocotools matplotlib==3.8.4
+# Security updates
+# https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
+RUN apt upgrade --no-install-recommends -y openssl tar
 
-RUN pip install openpifpaf --no-build-isolation
+# Create working directory
+RUN mkdir -p /usr/src/ultralytics
+WORKDIR /usr/src/ultralytics
 
-COPY ./fonts/* /opt/conda/lib/python3.10/site-packages/matplotlib/mpl-data/fonts/ttf/
+# Copy contents
+# COPY . /usr/src/app  (issues as not a .git directory)
+RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
+ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
-RUN pip install git+https://github.com/VlSomers/prtreid
+# Install pip packages
+RUN python3 -m pip install --upgrade pip wheel
+RUN pip install --no-cache -e . albumentations comet thop pycocotools onnx onnx-simplifier onnxruntime-gpu
 
-RUN pip install git+https://github.com/TrackingLaboratory/poseval@pbtrack
+# Set environment variables
+ENV OMP_NUM_THREADS=1
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
+ENV MKL_THREADING_LAYER=GNU
 
-RUN pip install git+https://github.com/TrackingLaboratory/lap
-    
-RUN pip install git+https://github.com/VlSomers/bpbreid
-    
-RUN pip install \
-    hydra-core==1.3 \
-    lightning>=2.0 \
-    pytorch_lightning==2.0 \
-    numpy==1.23.5 \
-    openmim==0.3.9 \
-    ultralytics==8.0.61 \
-    sphinx==7.2 \
-    sphinx_rtd_theme==2.0 \
-    myst-parser==2.0 \
-    filterpy==1.4.5 \
-    mmdet~=3.1.0 \
-    chumpy==0.66
 
-RUN pip install opencv-python tb-nightly logger_tt tabulate tqdm wheel mccabe scipy easyocr==1.7.1 soccernet==0.1.55 mmocr==1.0.1
+# Usage Examples -------------------------------------------------------------------------------------------------------
 
-RUN pip install \
-    mmengine==0.10.1 \
-    timm==0.9.12 \
-    mmpose==1.2.0 \
-    gdown==4.7.1 \
-    pandas==2.1.0
+# Build and Push
+# t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
-RUN pip install yt-dlp>=2023.12.30 tabulate Pillow pytest
+# Pull and Run
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
 
-RUN mim install mmcv==2.0.1
+# Pull and Run with local directory access
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t
+
+# Kill all
+# sudo docker kill $(sudo docker ps -q)
+
+# Kill all image-based
+# sudo docker kill $(sudo docker ps -qa --filter ancestor=ultralytics/ultralytics:latest)
+
+# DockerHub tag update
+# t=ultralytics/ultralytics:latest tnew=ultralytics/ultralytics:v6.2 && sudo docker pull $t && sudo docker tag $t $tnew && sudo docker push $tnew
+
+# Clean up
+# sudo docker system prune -a --volumes
+
+# Update Ubuntu drivers
+# https://www.maketecheasier.com/install-nvidia-drivers-ubuntu/
+
+# DDP test
+# python -m torch.distributed.run --nproc_per_node 2 --master_port 1 train.py --epochs 3
+
+# GCP VM from Image
+# docker.io/ultralytics/ultralytics:latest
