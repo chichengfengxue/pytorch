@@ -6,20 +6,18 @@ ARG CUDNN="7"
 
 FROM pytorch/pytorch:${PYTORCH}-cuda${CUDA}-cudnn${CUDNN}-devel
 
+RUN apt-key del 7fa2af80 && \
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub && \
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/7fa2af80.pub
+
 ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 
-# 非交互模式：避免访问镜像中可能存在的 NVIDIA apt 源（导致 NO_PUBKEY），
-# 先删除指向 developer.download.nvidia.com 的条目，替换为国内镜像后更新并安装包
-ENV DEBIAN_FRONTEND=noninteractive
-RUN if [ -d /etc/apt/sources.list.d ]; then sed -i '/developer.download.nvidia.com/d' /etc/apt/sources.list.d/* 2>/dev/null || true; fi \
- && sed -i.bak -E 's|http://(archive|security).ubuntu.com/ubuntu/|https://mirrors.tuna.tsinghua.edu.cn/ubuntu/|g' /etc/apt/sources.list \
- && apt-get update --allow-releaseinfo-change \
- && apt-get install -y --no-install-recommends ca-certificates curl \
- && apt-get install -y --no-install-recommends ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libxrender-dev \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+RUN apt-get update
+RUN apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6 
+RUN apt-get clean 
+RUN rm -rf /var/lib/apt/lists/*
 
 # Install MMCV
 RUN pip install --no-cache-dir --upgrade pip wheel setuptools
