@@ -10,10 +10,16 @@ ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 
-RUN apt-get update
-RUN apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6 
-RUN apt-get clean 
-RUN rm -rf /var/lib/apt/lists/*
+# 非交互模式，使用国内镜像并确保 NVIDIA apt 仓库公钥可用，合并为一个 RUN 步骤以减少镜像层
+ENV DEBIAN_FRONTEND=noninteractive
+RUN sed -i.bak -E 's|http://(archive|security).ubuntu.com/ubuntu/|https://mirrors.tuna.tsinghua.edu.cn/ubuntu/|g' /etc/apt/sources.list \
+ && apt-get update || true \
+ && apt-get install -y --no-install-recommends ca-certificates gnupg2 curl \
+ && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC || true \
+ && apt-get update --allow-releaseinfo-change \
+ && apt-get install -y --no-install-recommends ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libxrender-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Install MMCV
 RUN pip install --no-cache-dir --upgrade pip wheel setuptools
