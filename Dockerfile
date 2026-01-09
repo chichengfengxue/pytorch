@@ -10,13 +10,13 @@ ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 
-# 非交互模式，使用国内镜像并确保 NVIDIA apt 仓库公钥可用，合并为一个 RUN 步骤以减少镜像层
+# 非交互模式：避免访问镜像中可能存在的 NVIDIA apt 源（导致 NO_PUBKEY），
+# 先删除指向 developer.download.nvidia.com 的条目，替换为国内镜像后更新并安装包
 ENV DEBIAN_FRONTEND=noninteractive
-RUN sed -i.bak -E 's|http://(archive|security).ubuntu.com/ubuntu/|https://mirrors.tuna.tsinghua.edu.cn/ubuntu/|g' /etc/apt/sources.list \
- && apt-get update || true \
- && apt-get install -y --no-install-recommends ca-certificates gnupg2 curl \
- && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC || true \
+RUN if [ -d /etc/apt/sources.list.d ]; then sed -i '/developer.download.nvidia.com/d' /etc/apt/sources.list.d/* 2>/dev/null || true; fi \
+ && sed -i.bak -E 's|http://(archive|security).ubuntu.com/ubuntu/|https://mirrors.tuna.tsinghua.edu.cn/ubuntu/|g' /etc/apt/sources.list \
  && apt-get update --allow-releaseinfo-change \
+ && apt-get install -y --no-install-recommends ca-certificates curl \
  && apt-get install -y --no-install-recommends ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libxrender-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
