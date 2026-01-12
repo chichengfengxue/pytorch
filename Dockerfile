@@ -26,10 +26,12 @@ RUN set -eux; \
 
 ENV PATH=${CONDA_DIR}/bin:${PATH}
 
-# 更新 conda、创建环境（可选改为创建独立 env）并安装 PyTorch 1.6.0 + cudatoolkit 10.1
-RUN conda update -n base -c defaults conda -y && \
-	conda install -y -c pytorch pytorch==1.6.0 cudatoolkit=10.1 && \
-	conda clean -afy
+# 更新 conda 并通过 PyTorch 官方 wheel 安装匹配的 CUDA 10.1 版本（更稳定）
+RUN set -eux; \
+	conda update -n base -c defaults conda -y || true; \
+	pip --no-cache-dir install --upgrade pip wheel setuptools; \
+	pip --no-cache-dir install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/cu101/torch_stable.html; \
+	conda clean -afy || true
 
 # 设置常用环境变量
 ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
