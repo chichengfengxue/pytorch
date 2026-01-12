@@ -15,10 +15,14 @@ RUN apt-get update && \
 
 # 安装 Miniconda 到 /opt/conda
 ENV CONDA_DIR=/opt/conda
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
-	bash /tmp/miniconda.sh -b -p ${CONDA_DIR} && \
-	rm /tmp/miniconda.sh && \
-	${CONDA_DIR}/bin/conda clean -tipsy
+RUN set -eux; \
+	for i in 1 2 3; do \
+		wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && break || sleep 5; \
+	done; \
+	chmod +x /tmp/miniconda.sh; \
+	bash /tmp/miniconda.sh -b -p "${CONDA_DIR}"; \
+	rm -f /tmp/miniconda.sh; \
+	"${CONDA_DIR}/bin/conda" clean -afy
 
 ENV PATH=${CONDA_DIR}/bin:${PATH}
 
