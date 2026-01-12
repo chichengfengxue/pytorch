@@ -28,14 +28,17 @@ ENV PATH=${CONDA_DIR}/bin:${PATH}
 
 # 更新 conda 并通过 PyTorch 官方 wheel 安装匹配的 CUDA 10.1 版本（支持 buildx 多架构）
 ARG TARGETARCH
+ARG ENABLE_CUDA=0
 RUN set -eux; \
 	conda update -n base -c defaults conda -y || true; \
 	pip --no-cache-dir install --upgrade pip wheel setuptools; \
 	arch="${TARGETARCH:-$(dpkg --print-architecture 2>/dev/null || uname -m)}"; \
-	if [ "${arch}" = "amd64" ] || [ "${arch}" = "x86_64" ]; then \
+	if [ "${ENABLE_CUDA}" = "1" ] && ( [ "${arch}" = "amd64" ] || [ "${arch}" = "x86_64" ] ); then \
+		echo "Installing CUDA-enabled PyTorch (cu101) for amd64"; \
 		pip --no-cache-dir install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/cu101/torch_stable.html; \
 	else \
-		pip --no-cache-dir install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html || true; \
+		echo "Installing CPU PyTorch for ${arch}"; \
+		pip --no-cache-dir install torch==1.6.0 torchvision==0.7.0 -f https://download.pytorch.org/whl/cpu/torch_stable.html || true; \
 	fi; \
 	conda clean -afy || true
 
