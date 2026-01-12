@@ -26,11 +26,17 @@ RUN set -eux; \
 
 ENV PATH=${CONDA_DIR}/bin:${PATH}
 
-# 更新 conda 并通过 PyTorch 官方 wheel 安装匹配的 CUDA 10.1 版本（更稳定）
+# 更新 conda 并通过 PyTorch 官方 wheel 安装匹配的 CUDA 10.1 版本（支持 buildx 多架构）
+ARG TARGETARCH
 RUN set -eux; \
 	conda update -n base -c defaults conda -y || true; \
 	pip --no-cache-dir install --upgrade pip wheel setuptools; \
-	pip --no-cache-dir install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/cu101/torch_stable.html; \
+	arch="${TARGETARCH:-$(dpkg --print-architecture 2>/dev/null || uname -m)}"; \
+	if [ "${arch}" = "amd64" ] || [ "${arch}" = "x86_64" ]; then \
+		pip --no-cache-dir install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/cu101/torch_stable.html; \
+	else \
+		pip --no-cache-dir install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html || true; \
+	fi; \
 	conda clean -afy || true
 
 # 设置常用环境变量
