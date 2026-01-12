@@ -1,32 +1,47 @@
 # 复现论文，地址 git clone https://github.com/dyl96/LTDNet
 
+# Dockerfile
 ARG PYTORCH="1.6.0"
 ARG CUDA="10.1"
 ARG CUDNN="7"
 
-FROM pytorch/pytorch:${PYTORCH}-cuda${CUDA}-cudnn${CUDNN}-devel
+FROM nvidia/cuda:${CUDA}-cudnn${CUDNN}-devel-ubuntu20.04
 
-RUN apt-key del 7fa2af80 && \
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub && \
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/7fa2af80.pub
+ENV DEBIAN_FRONTEND=noninteractive \
+    CONDA_DIR=/opt/conda \
+    TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX" \
+    TORCH_NVCC_FLAGS="-Xfatbin -compress-all" \
+    FORCE_CUDA="1" \
+    PATH=/opt/conda/bin:/usr/local/cuda/bin:$PATH
 
-ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
-ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+# 基本依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget ca-certificates git build-essential cmake curl \
+    ffmpeg libsm6 libxext6 libxrender-dev libglib2.0-0 \
+    ninja-build libsndfile1 && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update
-RUN apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6 
-RUN apt-get clean 
-RUN rm -rf /var/lib/apt/lists/*
+# 安装 Miniconda
+RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
+    bash /tmp/miniconda.sh -b -p $CONDA_DIR && \
+    rm /tmp/miniconda.sh && \
+    $CONDA_DIR/bin/conda clean -afy
 
-# Install MMCV
+# 通过 conda 安装与 CUDA10.1 配套的 PyTorch 1.6.0（保留 CUDA/cuDNN 版本兼容性）
+RUN conda install -y -c pytorch pytorch=${PYTORCH} torchvision=0.7.0 cudatoolkit=10.1 && \
+    conda clean -afy
+
+ENV CMAKE_PREFIX_PATH=$CONDA_DIR
+
+# Python 包与 MMCV
 RUN pip install --no-cache-dir --upgrade pip wheel setuptools
 RUN pip install --no-cache-dir mmcv-full==1.3.17 -f https://download.openmmlab.com/mmcv/dist/cu101/torch1.6.0/index.html
 
-# Install MMDetection
-RUN conda clean --all
+# 安装 MMDetection（或其他仓库）
 RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection
 WORKDIR /mmdetection
-ENV FORCE_CUDA="1"
 RUN pip install --no-cache-dir -r requirements/build.txt
 RUN pip install --no-cache-dir -e .
+
+# 清理（可选）
+RUN conda clean -afy && rm -rf /var/lib/apt/lists/*
