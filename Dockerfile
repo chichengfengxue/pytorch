@@ -1,7 +1,7 @@
 # 复现论文，地址 git clone https://github.com/dyl96/LTDNet
 # v2.3.3 尝试使用更高版本的torch和cuda，如果可以跑通最好
 
-ARG BASE_IMAGE=nvidia/cuda:11.1-cudnn8-devel-ubuntu20.04
+ARG BASE_IMAGE=nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 FROM ${BASE_IMAGE}
 
 ARG DEBIAN_FRONTEND=noninteractive
