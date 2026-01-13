@@ -53,7 +53,8 @@ RUN if [ -n "${COCOAPI_REPO}" ]; then \
 # Clean up apt caches
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
 
-ENV PYTHONPATH=/workspace:$PYTHONPATH
+ARG PYTHONPATH=""
+ENV PYTHONPATH=/workspace:${PYTHONPATH}
 
 WORKDIR /mnt/csip-113/zlx/LTDNet
 
