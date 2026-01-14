@@ -1,75 +1,72 @@
 # 复现论文，地址 git clone https://github.com/dyl96/LTDNet
-# v2.3.3 尝试使用更高版本的torch和cuda，如果可以跑通最好
 
-ARG BASE_IMAGE=nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
-FROM ${BASE_IMAGE}
+FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG PYTHON_VERSION=3.8
-ARG GCC_VERSION=9
-ARG PYTORCH_VERSION=1.8.1+cu111
-ARG TORCHVISION_VERSION=0.9.1+cu111
-ARG MMCV_FULL=1
-ARG COCOAPI_REPO=""
+ARG PYTHON_VERSION=3.10
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+
+# 基本依赖
+RUN apt-get update && \
+	apt-get install -y --no-install-recommends \
+		wget ca-certificates curl git bzip2 build-essential cmake \
+		ffmpeg libsm6 libxext6 libxrender-dev libglib2.0-0 \
+		software-properties-common apt-transport-https gnupg2 && \
+	rm -rf /var/lib/apt/lists/*
+
+# 安装 Miniconda 到 /opt/conda
+ENV CONDA_DIR=/opt/conda
+RUN set -eux; \
+	for i in 1 2 3; do \
+		wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && break || sleep 5; \
+	done; \
+	chmod +x /tmp/miniconda.sh; \
+	bash /tmp/miniconda.sh -b -p "${CONDA_DIR}"; \
+	rm -f /tmp/miniconda.sh; \
+	"${CONDA_DIR}/bin/conda" clean -afy
+
+ENV PATH=${CONDA_DIR}/bin:${PATH}
+
+# 更新 conda 并通过 PyTorch 官方 wheel 安装匹配的 CUDA 10.1 版本（支持 buildx 多架构）
 ARG TARGETARCH
 ARG ENABLE_CUDA=0
-
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-WORKDIR /workspace
-
-# Install system dependencies and Python
-RUN apt-get update && apt-get install -y --no-install-recommends \
-		build-essential \
-		git wget ca-certificates curl \
-		python3 python3-dev python3-venv python3-pip python3-setuptools \
-		libjpeg-dev zlib1g-dev libpng-dev \
-		ffmpeg libsm6 libxext6 \
-		&& rm -rf /var/lib/apt/lists/*
-
-# Make `python` point to python3 and upgrade pip
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 || true \
-		&& python -m pip install -U pip setuptools wheel
-
-# Install PyTorch (>=1.3) -- choose wheel by build arch and ENABLE_CUDA
 RUN set -eux; \
+	conda update -n base -c defaults conda -y || true; \
+	# Pin base Python to a stable version (avoid newer unstable releases like 3.13)
+	conda install -n base python=${PYTHON_VERSION} -y || true; \
+	python -V; \
 	pip --no-cache-dir install --upgrade pip wheel setuptools; \
 	arch="${TARGETARCH:-$(dpkg --print-architecture 2>/dev/null || uname -m)}"; \
 	if [ "${ENABLE_CUDA}" = "1" ] && ( [ "${arch}" = "amd64" ] || [ "${arch}" = "x86_64" ] ); then \
-		echo "Installing CUDA-enabled PyTorch for amd64"; \
-		pip install --no-cache-dir "torch==${PYTORCH_VERSION}" "torchvision==${TORCHVISION_VERSION}" -f https://download.pytorch.org/whl/torch_stable.html || pip install --no-cache-dir torch torchvision; \
+		echo "Installing CUDA-enabled PyTorch (cu101) for amd64"; \
+		pip --no-cache-dir install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/cu101/torch_stable.html; \
 	else \
 		echo "Installing CPU PyTorch for ${arch}"; \
-		pip install --no-cache-dir torch==1.8.1+cpu torchvision==0.9.1+cpu -f https://download.pytorch.org/whl/torch_stable.html || pip install --no-cache-dir torch torchvision; \
-	fi
+		pip --no-cache-dir install torch==1.6.0 torchvision==0.7.0 -f https://download.pytorch.org/whl/cpu/torch_stable.html || true; \
+	fi; \
+	conda clean -afy || true
 
-# Install MMCV (try mmcv-full for GPU support, fallback to mmcv)
-RUN if [ "${MMCV_FULL}" = "1" ]; then \
-			pip install --no-cache-dir mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.8.0/index.html || pip install --no-cache-dir mmcv; \
-		else \
-			pip install --no-cache-dir mmcv; \
-		fi
+# 设置常用环境变量
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 
-# Optionally clone and install cocoapi-aitod if a repo URL is provided at build time
-RUN if [ -n "${COCOAPI_REPO}" ]; then \
-			git clone ${COCOAPI_REPO} /workspace/cocoapi && \
-			if [ -d /workspace/cocoapi/PythonAPI ]; then \
-				cd /workspace/cocoapi/PythonAPI && python setup.py build_ext --inplace && pip install -e . ; \
-			elif [ -f /workspace/cocoapi/setup.py ]; then \
-				cd /workspace/cocoapi && python setup.py build_ext --inplace && pip install -e . ; \
-			fi ; \
-		fi
+# Python 包管理：升级 pip、wheel、setuptools
+RUN pip install --no-cache-dir --upgrade pip wheel setuptools
 
-# Clean up apt caches
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
+# 安装 mmcv-full（使用 OpenMMLab 的 cu101 + torch1.6.0 轮子索引）
+# 如果在构建中遇到二进制不匹配，可能需要修改或编译 mmcv-full
+RUN pip --no-cache-dir install mmcv-full==1.3.17 -f https://download.openmmlab.com/mmcv/dist/cu101/torch1.6.0/index.html || true
 
-ARG PYTHONPATH=""
-ENV PYTHONPATH=/workspace:${PYTHONPATH}
+# 安装 MMDetection（可选），并安装可选依赖（与原 Dockerfile 保持功能一致）
+RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection && \
+	cd /mmdetection && \
+	pip --no-cache-dir install -r requirements/build.txt || true && \
+	pip --no-cache-dir install -e . || true
 
+# 清理 apt 与 conda 缓存以减小镜像体积
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* || true
+RUN conda clean -afy || true
+
+# 工作目录
 WORKDIR /mnt/csip-113/zlx/LTDNet
-
-# Usage examples:
-# Build with default args (CUDA 11.1 base image):
-# docker build -t my-image:latest .
-# Provide a cocoapi-aitod repo to build/install it during image build:
-# docker build --build-arg COCOAPI_REPO=https://github.com/your/repo.git -t my-image:latest .
-
