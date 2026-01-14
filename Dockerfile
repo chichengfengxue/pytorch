@@ -11,6 +11,8 @@ ARG PYTORCH_VERSION=1.8.1+cu111
 ARG TORCHVISION_VERSION=0.9.1+cu111
 ARG MMCV_FULL=1
 ARG COCOAPI_REPO=""
+ARG TARGETARCH
+ARG ENABLE_CUDA=0
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 WORKDIR /workspace
@@ -28,10 +30,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 || true \
 		&& python -m pip install -U pip setuptools wheel
 
-# Install PyTorch (>=1.3) -- choose a CUDA-enabled wheel matching the base image
-RUN pip install --no-cache-dir \
-		torch==${PYTORCH_VERSION} torchvision==${TORCHVISION_VERSION} -f https://download.pytorch.org/whl/torch_stable.html || \
-		pip install --no-cache-dir torch torchvision
+# Install PyTorch (>=1.3) -- choose wheel by build arch and ENABLE_CUDA
+RUN set -eux; \
+	pip --no-cache-dir install --upgrade pip wheel setuptools; \
+	arch="${TARGETARCH:-$(dpkg --print-architecture 2>/dev/null || uname -m)}"; \
+	if [ "${ENABLE_CUDA}" = "1" ] && ( [ "${arch}" = "amd64" ] || [ "${arch}" = "x86_64" ] ); then \
+		echo "Installing CUDA-enabled PyTorch for amd64"; \
+		pip install --no-cache-dir "torch==${PYTORCH_VERSION}" "torchvision==${TORCHVISION_VERSION}" -f https://download.pytorch.org/whl/torch_stable.html || pip install --no-cache-dir torch torchvision; \
+	else \
+		echo "Installing CPU PyTorch for ${arch}"; \
+		pip install --no-cache-dir torch==1.8.1+cpu torchvision==0.9.1+cpu -f https://download.pytorch.org/whl/torch_stable.html || pip install --no-cache-dir torch torchvision; \
+	fi
 
 # Install MMCV (try mmcv-full for GPU support, fallback to mmcv)
 RUN if [ "${MMCV_FULL}" = "1" ]; then \
