@@ -1,72 +1,62 @@
 # 复现论文，地址 git clone https://github.com/dyl96/LTDNet
 
-FROM ubuntu:20.04
+# Dockerfile — Ubuntu 20.04 base, conda, PyTorch >=1.3, 保留 mmcv/mmcv-full 与 mmdetection 原文安装段
+# 注意：
+# - 本镜像基于 Ubuntu 20.04，CUDA 镜像选择由 ARG 控制（默认 11.3）。如果你确实需要 mmcv-full==1.3.17 对应的 cu101/torch1.6.0 预编译 wheel，
+#   需要确保 base CUDA / PyTorch 与之匹配；当前文件保留原始 mmcv 安装行，但可能会触发从源码构建（若版本不匹配）。
+# - 如果需要严格匹配 cu101 + torch1.6.0，请将 ARG CUDA 与安装的 pytorch 对应调整为合适版本（或使用官方 pytorch/pytorch:1.6.0-cuda10.1-* image）。
+ARG CUDA="11.3.1"
+ARG CUDNN="8"
+ARG PYTHON_VERSION="3.9"
+ARG CONDA_DIR="/opt/conda"
 
-ARG DEBIAN_FRONTEND=noninteractive
-ARG PYTHON_VERSION=3.10
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+FROM nvidia/cuda:${CUDA}-cudnn${CUDNN}-devel-ubuntu20.04
 
-# 基本依赖
-RUN apt-get update && \
-	apt-get install -y --no-install-recommends \
-		wget ca-certificates curl git bzip2 build-essential cmake \
-		ffmpeg libsm6 libxext6 libxrender-dev libglib2.0-0 \
-		software-properties-common apt-transport-https gnupg2 && \
-	rm -rf /var/lib/apt/lists/*
-
-# 安装 Miniconda 到 /opt/conda
-ENV CONDA_DIR=/opt/conda
-RUN set -eux; \
-	for i in 1 2 3; do \
-		wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && break || sleep 5; \
-	done; \
-	chmod +x /tmp/miniconda.sh; \
-	bash /tmp/miniconda.sh -b -p "${CONDA_DIR}"; \
-	rm -f /tmp/miniconda.sh; \
-	"${CONDA_DIR}/bin/conda" clean -afy
-
+ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=${CONDA_DIR}/bin:${PATH}
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# 更新 conda 并通过 PyTorch 官方 wheel 安装匹配的 CUDA 10.1 版本（支持 buildx 多架构）
-ARG TARGETARCH
-ARG ENABLE_CUDA=0
-RUN set -eux; \
-	conda update -n base -c defaults conda -y || true; \
-	# Pin base Python to a stable version (avoid newer unstable releases like 3.13)
-	conda install -n base python=${PYTHON_VERSION} -y || true; \
-	python -V; \
-	pip --no-cache-dir install --upgrade pip wheel setuptools; \
-	arch="${TARGETARCH:-$(dpkg --print-architecture 2>/dev/null || uname -m)}"; \
-	if [ "${ENABLE_CUDA}" = "1" ] && ( [ "${arch}" = "amd64" ] || [ "${arch}" = "x86_64" ] ); then \
-		echo "Installing CUDA-enabled PyTorch (cu101) for amd64"; \
-		pip --no-cache-dir install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/cu101/torch_stable.html; \
-	else \
-		echo "Installing CPU PyTorch for ${arch}"; \
-		pip --no-cache-dir install torch==1.6.0 torchvision==0.7.0 -f https://download.pytorch.org/whl/cpu/torch_stable.html || true; \
-	fi; \
-	conda clean -afy || true
+# 基本系统依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget ca-certificates bzip2 git build-essential cmake \
+    ffmpeg libsm6 libxext6 libglib2.0-0 libxrender-dev \
+    ninja-build pkg-config unzip curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 设置常用环境变量
-ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
-ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+# 安装 Miniconda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
+    /bin/bash /tmp/miniconda.sh -b -p ${CONDA_DIR} && \
+    rm /tmp/miniconda.sh && \
+    ${CONDA_DIR}/bin/conda clean -afy
 
-# Python 包管理：升级 pip、wheel、setuptools
-RUN pip install --no-cache-dir --upgrade pip wheel setuptools
+# 创建 conda 环境并安装 Python 与 PyTorch（可按需调整版本）
+# 这里安装 PyTorch >=1.3（示例用 1.10.1 + cudatoolkit=11.3）以满足项目需求。
+RUN conda create -n LTDNet python=${PYTHON_VERSION} -y && \
+    /bin/bash -lc "conda activate LTDNet && \
+    conda install -y -c pytorch -c conda-forge pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 && \
+    pip install --upgrade pip setuptools wheel && \
+    conda clean -afy"
 
-# 安装 mmcv-full（使用 OpenMMLab 的 cu101 + torch1.6.0 轮子索引）
-# 如果在构建中遇到二进制不匹配，可能需要修改或编译 mmcv-full
-RUN pip --no-cache-dir install mmcv-full==1.3.17 -f https://download.openmmlab.com/mmcv/dist/cu101/torch1.6.0/index.html || true
+# 将 conda env 激活方式写入 PATH（运行时用 `conda run -n LTDNet ...` 或显式激活）
+ENV CONDA_DEFAULT_ENV=LTDNet
 
-# 安装 MMDetection（可选），并安装可选依赖（与原 Dockerfile 保持功能一致）
-RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection && \
-	cd /mmdetection && \
-	pip --no-cache-dir install -r requirements/build.txt || true && \
-	pip --no-cache-dir install -e . || true
+# Install MMCV
+RUN /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate LTDNet && \
+    pip install --no-cache-dir --upgrade pip wheel setuptools"
+RUN /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate LTDNet && \
+    pip install --no-cache-dir mmcv-full==1.3.17 -f https://download.openmmlab.com/mmcv/dist/cu101/torch1.6.0/index.html"
 
-# 清理 apt 与 conda 缓存以减小镜像体积
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* || true
-RUN conda clean -afy || true
+# Install MMDetection
+RUN /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate LTDNet && conda clean --all"
+RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection
+WORKDIR /mmdetection
+ENV FORCE_CUDA="1"
+RUN /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate LTDNet && \
+    pip install --no-cache-dir -r requirements/build.txt"
+RUN /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate LTDNet && \
+    pip install --no-cache-dir -e ."
 
-# 工作目录
-WORKDIR /mnt/csip-113/zlx/LTDNet
+# 安装 cocoapi-aitod（示例，若你使用特定 fork/版本请替换）
+RUN /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate LTDNet && \
+    pip install git+https://github.com/your-org/cocoapi-aitod.git || true"
+
