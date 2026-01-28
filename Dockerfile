@@ -5,14 +5,14 @@ FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-WORKDIR /mnt/csip-113/zlx/DQ-DETR
+WORKDIR /workspace
 
-# Install system dependencies and Python 3.9
+# Install system dependencies and system Python (Ubuntu 22.04 provides python3)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential cmake git wget ca-certificates tzdata locales \
-    python3.9 python3.9-dev python3-pip python3-venv \
+    python3 python3-dev python3-pip python3-venv \
     libjpeg-dev libpng-dev pkg-config libatlas-base-dev \
-    && ln -sf /usr/bin/python3.9 /usr/bin/python \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
     && python -m pip install --upgrade pip setuptools wheel \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
