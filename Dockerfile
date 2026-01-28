@@ -17,12 +17,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install core Python packages and Cython.
-# Conditional install: only install CUDA-enabled PyTorch on amd64 builds to avoid missing wheels on other arches.
+# Add a build-time flag to optionally install PyTorch. For multi-arch buildx builds
+# it's common to skip installing CUDA wheels (which are only available for amd64).
 ARG TARGETARCH
-RUN if [ "${TARGETARCH}" = "amd64" ] || [ -z "${TARGETARCH}" ]; then \
-            pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu124 ; \
+ARG INSTALL_TORCH=1
+RUN if [ "${INSTALL_TORCH}" = "1" ]; then \
+            if [ "${TARGETARCH}" = "amd64" ] || [ -z "${TARGETARCH}" ]; then \
+                pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu124 ; \
+            else \
+                echo "Non-amd64 build: installing CPU-only PyTorch wheel" && \
+                pip install --no-cache-dir torch==2.4.0+cpu torchvision==0.19.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu ; \
+            fi ; \
         else \
-            pip install --no-cache-dir torch==2.4.0+cpu torchvision==0.19.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu ; \
+            echo "Skipping PyTorch install (INSTALL_TORCH=${INSTALL_TORCH})" ; \
         fi && \
         pip install --no-cache-dir cython==0.29.36 && \
         pip install --no-cache-dir "git+https://github.com/jwwangchn/cocoapi-aitod.git#subdirectory=aitodpycocotools"
