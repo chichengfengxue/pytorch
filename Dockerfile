@@ -16,11 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && python -m pip install --upgrade pip setuptools wheel \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python packages (PyTorch pinned to CUDA 12.4)
-COPY requirements.txt /workspace/
+# Install core Python packages (PyTorch pinned to CUDA 12.4) and Cython
 RUN pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu124 \
     && pip install --no-cache-dir cython==0.29.36 \
-    && pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir "git+https://github.com/jwwangchn/cocoapi-aitod.git#subdirectory=aitodpycocotools"
 
 # Copy repository source
