@@ -3,17 +3,29 @@
 FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ARG PYTHON_VERSION=3.9
 
+# Install system packages and python3 (ubuntu22.04 ships python3.10)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       python${PYTHON_VERSION} python${PYTHON_VERSION}-dev python3-pip git build-essential cmake ca-certificates wget \
-    && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
-    && python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install numpy cython ninja \
-    && python -m pip install --index-url https://download.pytorch.org/whl/cu124 \
-       torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+   && apt-get install -y --no-install-recommends \
+      python3 python3-dev python3-pip python3-distutils git build-essential cmake ca-certificates wget libsndfile1 \
+   && ln -sf /usr/bin/python3 /usr/bin/python \
+   && apt-get clean \
+   && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip and install build tools first
+RUN python -m pip install --upgrade pip setuptools wheel \
+   && python -m pip install --no-cache-dir numpy cython ninja
+
+# Install PyTorch cu124 binaries from official index
+RUN python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu124 \
+      "torch==2.4.0+cu124" "torchvision==0.19.0+cu124" "torchaudio==2.4.0+cu124" || \
+   (echo "PyTorch cu124 wheel install failed" && python -m pip debug --verbose && false)
+
+WORKDIR /workspace
+
+CMD ["/bin/bash"]
+
+
+
 
 
