@@ -1,31 +1,24 @@
-# 复现论文，地址：https://github.com/hoiliu-0801/DQ-DETR
+ARG PYTORCH="1.6.0"
+ARG CUDA="10.1"
+ARG CUDNN="7"
 
-FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
+FROM pytorch/pytorch:${PYTORCH}-cuda${CUDA}-cudnn${CUDNN}-devel
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 
-# Install system packages and python3 (ubuntu22.04 ships python3.10)
-RUN apt-get update \
-   && apt-get install -y --no-install-recommends \
-      python3 python3-dev python3-pip python3-distutils git build-essential cmake ca-certificates wget libsndfile1 \
-   && ln -sf /usr/bin/python3 /usr/bin/python \
-   && apt-get clean \
-   && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libsm6 libxrender-dev libxext6 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install build tools first
-RUN python -m pip install --upgrade pip setuptools wheel \
-   && python -m pip install --no-cache-dir numpy cython ninja
+# Install MMCV
+RUN pip install mmcv-full==latest+torch1.6.0+cu101 -f https://openmmlab.oss-accelerate.aliyuncs.com/mmcv/dist/index.html
 
-# Install PyTorch cu124 binaries from official index
-RUN python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu124 \
-      "torch==2.4.0+cu124" "torchvision==0.19.0+cu124" "torchaudio==2.4.0+cu124" || \
-   (echo "PyTorch cu124 wheel install failed" && python -m pip debug --verbose && false)
-
-WORKDIR /workspace
-
-CMD ["/bin/bash"]
-
-
-
-
-
+# Install MMDetection
+RUN conda clean --all
+RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection
+WORKDIR /mmdetection
+ENV FORCE_CUDA="1"
+RUN pip install -r requirements/build.txt
+RUN pip install --no-cache-dir -e .
